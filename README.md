@@ -5,7 +5,7 @@ This repository is part of the submission for the Computer Vision Class.
 
 #### Saumya Mehta(mehtasau), Madhav Jariwala(makejari), Krutik Oza(kaoza) <br/>
 
-#### Code Used as reference and some helper function used: https://github.com/Sina-Baharlou/Depth-VRD
+#### Code Used as reference and some helper function used: https://github.com/Sina-Baharlou/Depth-VRD, code inside the helper folder is taken from the linked repository.
 
 ## Abstract
 
@@ -37,11 +37,38 @@ We used the CUDA Tooklist 10.0 version and recent versions should work as well. 
 This script will fetch:
 
 1. run `requirements.txt` file and install all requried libraries.
-2. download `VisualGenome` dataset from here: https://visualgenome.org/api/v0/api_home.html, we install both part1 and part2 of VG released during Versino 1.2.
+2. download `VisualGenome` dataset from here: https://visualgenome.org/api/v0/api_home.html, we install both part1 and part2 of VG released during Version 1.2.
 3. Download the Depth version of VG.
 4. Download the necessary checkpoints such as `FasterRCNN` checkpoint of pre-trained model for object detection.
 5. Compile the CUDA libraries.
 
+Once, the setup is done, we can train the model from scratch using this command:
+
+```
+python train_rels.py -m predcls -model shz_fusion -hidden_dim 4096 \
+        -b 16 -nepoch 30 -adam -lr 1e-4 -clip 5 \
+        -ckpt checkpoints/vg-faster-rcnn.tar -save_dir checkpoints/fusion_models \
+        -p 500 -tensorboard_ex  -ngpu 1 -rnd_seed 42 \
+        -active_features lcvd -load_depth -depth_model resnet18
+```
+* -m : Mode of the training, here we have only implemented for Predicate Classification
+* -model: Model architecture
+* -ckpt: using weights of pretrained Faster-RCNN model on visual genome for object detection
+* -p: Printing Interval
+* -active_features: `lcvd` considers location features, depth features, class features and visual features into consideration
+* -depth_model: We are using `resnet18` as depth_model. 
+Our code also supports only single GPU training at the moment. 
+
+This would take a while to run. On Google Colab, it took around 1 hour each epoch.
+
+To evaluate the model, you can run:
+
+```
+python eval_rels.py -m predcls -model shz_fusion -hidden_dim 4096 \
+        -b 16 -ngpu 1 \
+        -ckpt checkpoints/vgrel-lcvd.tar \
+        -active_features lcvd -load_depth -depth_model resnet18 -test
+```
 
 
 
